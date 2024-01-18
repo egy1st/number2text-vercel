@@ -1,10 +1,17 @@
 ﻿<?php
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1);
-//ini_set('error_reporting', E_ALL);
+// error_reporting(E_ALL);
+// ini_set("display_errors", 1);
+// ini_set('error_reporting', E_ALL);
 
-require_once "NumberingSystem.php";
-require_once "Number2Words.php";
+
+/**
+* Refernce to count
+* https://www.mandarintools.com/numbers.html
+* https://www.lddgo.net/en/convert/numberupper
+* https://flexiclasses.com/chinese-grammar-bank/big-chinese-numbers/
+* https://davidsmithtranslation.com/articles/numbers-in-chinese/
+*/
+
 
 /**
  * @covers Chinese_Traditional
@@ -13,266 +20,148 @@ require_once "Number2Words.php";
 class Chinese_Traditional
 {
 
-    public function TranslateNumber($str_Number, $aCur)
+    /**
+     * This is the main function required to convert a number into words.
+     *
+     * @param string $strNumber number parameter
+     * @param string $aCur currency-array parameter
+     *
+     * @return string
+     */
+    public function translateNumber($strNumber, $aCur)
     {
 
-        $Num = "";
-        $countZero = false;
-        NumberingSystem::getLanguage($R, $Z, $H, $M, $N, "Chinese_Traditional");
-        for ($x = 7; $x <= 12; $x++) {
-            $M [$x] = $aCur [$x - 7];
-        }
+        $strNum = "";
 
-        //===================================================================================
+        NumberingSystem::getLanguage($aUnit, $aTen, $aHundred, $aId, $aNum, "Chinese_Simplified");
+        for ($x = 7; $x <= 12; $x++) {
+            $aId[$x] = $aCur[$x - 7];
+        }
+         
+       
+        
+        // print_r($aNum) ;
+        // echo $strForma . "\n\r" ;
+             
+        //=====================================================================
         // each cycle represents a scale hunderds and tens, thousnads, millions and milliars
-        $L = 0;
-        for ($L = 1; $L <= 4; $L++) {
-            if ($L == 1) {
+        $cycle = 0;
+        $strForma = Number2Text::prepareNumber($strNumber, $aNum);
+        for ($cycle = 1; $cycle <= 4; $cycle++) {
+            if ($cycle == 1) {
                 $x = 1;
-            } else if ($L == 2) {
+            } else if ($cycle == 2) {
                 $x = 5;
-            } else if ($L == 3) {
+            } else if ($cycle == 3) {
                 $x = 9;
-            } else if ($L == 4) {
+            } else if ($cycle == 4) {
                 $countZero = false;
                 $x = 14;
             }
+   
 
-            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            // Keywords
+            // Counting up to 10,000 since the chinese system is based on 4-digits not 3-digits as other languages.
+            $strUnit = "" ;
+            $ptrn = substr($strForma,$x-1,4);
+            $foundZeros = false;
+           
+                
+           if ($aNum[$x + 0] != 0) {
+                $strUnit .= ($aUnit[$aNum[$x + 0]] . $aId[1]);
+                // Thousands
+            } 
 
-            //==============================================================================
-            //prepre numbers from 0 to 99
-            //Eleven in Chinese is "ten one". Twelve is "ten two", and so on. Twenty is "Two ten", twenty-one is
-            // "two ten one" (2*10 + 1), and so on up to 99. One-hundred is "one hundred". One-hundred and one is
-            // "one hundred zero one". One hundred and eleven is "one hundred one ten one". Notice that for eleven '
-            //alone, you only need "ten one" and not "one ten one", but when used in a larger number (such as 111),
-            // you must add the extra "one". One thousand and above is done in a similar fashion, where you say how
-            // many thousands you have, then how many hundreds, tens, and ones. An exception to this is for zeroes.
-            // When a zero occurs in the number (except at the end), you need to say "zero",
-            // but only once for two or more consecutive zeroes. So one-thousand and one would be "one thousand zero one",
-            // where zero stands in for the hundreds and tens places. Try different numbers in the
-            // converter above to practice and check on other numbers.
+           $foundZeros = $this->checkZeros($cycle, $strNum, $ptrn);
+           if ($foundZeros) {
+              $strUnit .= $aUnit[0];
+           }
+              
+            
+           if ($aNum[$x + 1] != 0) {
+                $strUnit .= ($aUnit[$aNum[$x + 1]] . $aHundred[1]);
+                // Hundreds
+            } 
+            
 
-            //What is different from American English is that when you get to ten-thousand,
-            // Chinese has its own word (wan4), unlike English where you must use a compound of ten and thousand.
-            //Only after ten thousand does Chinese start using compounds itself. One-hundred thousand is "one ten wan4"
-            // (where wan4 is the Chinese word for ten-thousand that English lacks).
-            // Chinese goes on like this until 100 million (yi4), where it introduces a new character.
-            // This happens every four decimal places, unlike American English where it happens every three decimal places
-            // (thousand, million, billion, trillion, etc. are all separated by three decimal places).
+           // Tens             
+            if ($aNum[$x + 2] == 1) {
+                 $strUnit .= $aTen[1]; 
 
-            $Forma = Number2Words::prepareNumber($str_Number, $N);
+            } else if($aNum[$x + 2] > 1) {
+                $strUnit .= ($aUnit[$aNum[$x + 2]] . $aTen[1]);     
+            } 
 
-            $y = 0;
-			
-				
-			if ( isset($N[$x + 3]) ){
-            $ptrn = $N[$x] . $N[$x + 1] . $N[$x + 2] . $N[$x + 3];
-
-
-				$i = 0;
-				for ($y = $x; $y <= $x + 3; $y++) {
-					$i += 1;
-					if ($N[$y] != 0 || $countZero) {
-						$countZero = true;
-					//check ten for units only'
-					if ($i == 3 & $L == 3 & $this->checkChineseTen($L, $Forma)) {
-						$Num .= $this->getID($y);
-					} else if ($N[$y] != 0) {
-						$Num .= $R[$N[$y]] . $this->getID($y);
-						//And getChineseSum(N, y) = 0
-					} else if ($N[$y] == 0 & $this->getChineseSubSum($N, $L, $i) == 0) {
-						// nothing to do
-						$y = $y;
-						//And getChineseSum(N, y) = 0
-					} else if ($N[$y] == 0 & $this->getChineseSubSum($N, $L, $i) != 0) {
-						// do not count zero again
-						$Num .= $R[$N[$y]];
-						$countZero = false;
-					} else {
-						$Num .= $R[$N[$y]];
-					}
-
-				  }
-			   }
-			}
-
-            if ($ptrn != "0000") {
-                $Num .= $this->getGrand($L);
+            // Units
+            if ($aNum[$x + 3] != 0) {
+                 $strUnit .= ($aUnit[$aNum[$x + 3]]) ;
             }
-            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-            if ($L == 3) {
-                $Num = NumberingSystem::removeAnd($Num, $M [0]);
-                $Num .= " " . $M[7];
-            } else if ($L == 4 & !NumberingSystem::isPattern($Forma, "xxxxxxxxxxxx.0000")) {
-                $Num .= " " . $M[9];
+            if ($ptrn !== "0000"){  // zero-index. should subtract 1 ftom x
+                $strUnit .= $this->getGrand($cycle);
             }
+    
+         
+           $strNum .= $strUnit ;
+       
+       }
+
+              
+        /*
+        $strNum = NumberingSystem::removeSpaces($strNum);
+        $strNum = NumberingSystem::removeAnd($strNum, $aId[0]);
+
+        if ($strForma == "000000000000.0000") {
+            $strNum = $aUnit[0];
         }
+        */
 
-        //Num = removeComma(Num) ' no comma is used in Finnish
-        $Num = NumberingSystem::removeSpaces($Num);
-        $Num = NumberingSystem::removeAnd($Num, $M [0]);
-
-        if ($Forma == "000000000000.0000") {
-            $Num = $R[0];
-        }
-
-        return $Num;
+        return $strNum;
 
     }
+ 
+    public static function checkZeros($cycle, $strNum, $ptrn): bool {
 
-    public static function getGrand($L)
+        if (($cycle == 2 ||  $cycle == 3) && $strNum != '' && $ptrn != '0000'){
+
+            if ( 
+                (substr($ptrn,0,3) == '000' && $ptrn[3] != '0')
+                || (substr($ptrn,0,2) == '00')
+                || ($ptrn[0] == '0' && $ptrn[1] != '0' && $ptrn[2] == '0' && $ptrn[3] == '0' )
+                || ($ptrn[0] == '0' && $ptrn[1] != '0' && $ptrn[2] != '0' && $ptrn[3] != '0' )
+                || ($ptrn[0] != '0' && $ptrn[1] == '0' && $ptrn[3] != '0' )
+                || ($ptrn[0] == '0' && $ptrn[1] != '0' && $ptrn[2] != '0' && $ptrn[3] != '0' )
+            ) {
+               return true;
+            } 
+            
+            if (
+               (substr($ptrn,-3) == '000')
+                
+            ) {
+                 return false;
+            } 
+            
+         
+        }
+        return false;    
+    }
+
+    public static function getGrand($cycle)
     {
 
-        if ($L == 1) {
-            return "億";
-            // 100 Million
-        } else if ($L == 2) {
-            return "萬";
-            // Ten Thousands
-        } else if ($L == 3) {
-            return "";
-            // units
-        }
-
-        //else if ($L == 4) {
-        // decimals
-
-        return "";
+       if ($cycle === 1) {
+            return "亿"; // 100 Million
+         } else if ($cycle === 2) {
+            return "万"; // 10 thousand
+        } else if ($cycle === 3) {
+            return ""; // nothing to return, less than 10000
+        } else if ($cycle === 4) {
+            return ""; // nothing to return, the deciaml part
+         }
     }
-
-    public static function getID($y)
-    {
-
-        if ($y % 4 == 1) {
-            return "仟";
-            // Thousands
-        } else if ($y % 4 == 2) {
-            return "佰";
-            // Hundereds
-        } else if ($y % 4 == 3) {
-            return "拾";
-            // Tens
-        }
-
-        //else if ($y % 4 == 0) {
-        // units
-
-        return "";
-
-    }
-
-    /*
-    public static function checkChineseHundred($L, $Forma)
-    {
-
-        if ($L == 1 & NumberingSystem::isPattern($Forma, "x1xxxxxxxxxx.xxxx")) {
-            return true;
-        } else if ($L == 2 & NumberingSystem::isPattern($Forma, "xxxxx1xxxxxx.xxxx")) {
-            return true;
-        } else if ($L == 3 & NumberingSystem::isPattern($Forma, "xxxxxxxxx1xx.xxxx")) {
-            return true;
-        // no place in pences places
-        } else if ($L == 4) {
-            return false;
-        }
-
-        return false;
-    }
-    */
-
-    public static function checkChineseTen($L, $Forma)
-    {
-
-        if ($L == 1 & NumberingSystem::isPattern($Forma, "0010xxxxxxxx.xxxx")) {
-            return true;
-        } else if ($L == 2 & NumberingSystem::isPattern($Forma, "xxxx0010xxxx.xxxx")) {
-            return true;
-        } else if ($L == 3 & NumberingSystem::isPattern($Forma, "xxxxxxxx0010.xxxx")) {
-            return true;
-        } else if ($L == 4 & NumberingSystem::isPattern($Forma, "xxxxxxxxxxxx.0010")) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /*
-    public static function checkChineseOne($L, $Forma)
-    {
-
-        if ($L == 1 & NumberingSystem::isPattern($Forma, "0001xxxxxxxx.xxxx")) {
-            return true;
-        } else if ($L == 2 & NumberingSystem::isPattern($Forma, "xxxx0001xxxx.xxxx")) {
-            return true;
-        // not applied here
-        } else if ($L == 3) {
-            return false;
-        // not applied here
-        } else if ($L == 4) {
-            return false;
-        }
-
-        return false;
-    }
-   */
-
-
-    /*
-	public static function checkChineseThousand($L, $Forma)
-	{
-
-		if ($L == 1 & NumberingSystem::isPattern($Forma, "1xxxxxxxxxxx.xxxx")) {
-			return true;
-		} else if ($L == 2 & NumberingSystem::isPattern($Forma, "xxxx1xxxxxxx.xxxx")) {
-			return true;
-		} else if ($L == 3 & NumberingSystem::isPattern($Forma, "xxxxxxxx1xxx.xxxx")) {
-			return true;
-		// no place in pences places
-		} else if ($L == 4) {
-			return false;
-		}
-
-		return false;
-	}
-	*/
-
-
-    public static function getChineseSubSum($N, $_phase, $_step)
-    {
-
-        $sum = 0;
-        $x = 0;
-
-        $_phase = $_phase - 1;
-        $_phase = $_phase * 4;
-        for ($x = $_step; $x <= 4; $x++) {
-            //echo 'sum ' . $N[$_phase + $x] ;
-            $sum += $N[$_phase + $x];
-        }
-
-        return $sum;
-
-    }
-
-    /*
-	public static function getChineseSum($N, $_step)
-	{
-
-		$sum = 0;
-		$x = 0;
-
-		for ($x = $_step; $x <= 12; $x++) {
-			$sum += $N[$x];
-		}
-
-		return $sum;
-
-	}
-	*/
-
 
 }
+
 
 ?>

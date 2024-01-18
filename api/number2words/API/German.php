@@ -1,15 +1,8 @@
 ﻿<?php
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1);
-//ini_set('error_reporting', E_ALL);
+// error_reporting(E_ALL);
+// ini_set("display_errors", 1);
+// ini_set('error_reporting', E_ALL);
 
-error_reporting(0);  //E_ALL
-ini_set("display_errors", 0); // 1
-ini_set('error_reporting', 0); // E_ALL
-
-
-require_once "NumberingSystem.php";
-require_once "Number2Words.php";
 
 /**
  * @covers German
@@ -17,132 +10,140 @@ require_once "Number2Words.php";
  */
 class German
 {
-    public function TranslateNumber($str_Number, $aCur)
-    {
-        $Num = "";
 
-        NumberingSystem::getLanguage($R, $Z, $H, $M, $N, "German");
+    /**
+     * This is the main function required to convert a number into words.
+     *
+     * @param string $strNumber number parameter
+     * @param string $aCur currency-array parameter
+     *
+     * @return string
+     */
+    public function translateNumber($strNumber, $aCur)
+    {
+        $strNum = "";
+
+        NumberingSystem::getLanguage($aUnit, $aTen, $aHundred, $aId, $aNum, "German");
         for ($x = 7; $x <= 12; $x++) {
-            $M [$x] = $aCur [$x - 7];
+            $aId[$x] = $aCur [$x - 7];
         }
 
-        // ===================================================================================
+        // ====================================================================
         // each cycle represent a scale hunderds and tens, thousnads, millions and milliars
-        $L = 0;
-        for ($L = 1; $L <= 5; $L++) {
-            $id1 = $M [($L * 2) - 1];
-            $id2 = $M [$L * 2];
-            if ($L == 1) {
+        $strForma = Number2Text::prepareNumber($strNumber, $aNum);
+        $cycle = 0;
+        for ($cycle = 1; $cycle <= 5; $cycle++) {
+            $id1 = $aId[($cycle * 2) - 1];
+            $id2 = $aId[$cycle * 2];
+            if ($cycle === 1) {
                 $x = 1;
-                $n_sum = NumberingSystem::getSum($N, 1);
-            } else if ($L == 2) {
+                $nSum = NumberingSystem::getSum($aNum, 1);
+            } else if ($cycle === 2) {
                 $x = 4;
-                $n_sum = NumberingSystem::getSum($N, 2);
-            } else if ($L == 3) {
+                $nSum = NumberingSystem::getSum($aNum, 2);
+            } else if ($cycle === 3) {
                 $x = 7;
-                $n_sum = NumberingSystem::getSum($N, 3);
-            } else if ($L == 4) {
+                $nSum = NumberingSystem::getSum($aNum, 3);
+            } else if ($cycle === 4) {
                 $x = 10;
-				if ($N [$x] == 0 & $N [$x + 1] == 0 & $N [$x + 2] == 0) {
-					$Num = NumberingSystem::removeComma($Num) ;
-                	$Num .=  ' ' . $id2 ;
-			      }
-            } else if ($L == 5) {
+                if ($aNum[$x] == 0 & $aNum[$x + 1] == 0 & $aNum[$x + 2] == 0) {
+                    $strNum = NumberingSystem::removeComma($strNum);
+                    $strNum .= ' ' . $id2;
+                }
+            } else if ($cycle === 5) {
                 $x = 14;
             }
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-            // ==============================================================================
-
-            $Forma = Number2Words::prepareNumber($str_Number, $N);
-
+            // ================================================================
             // Special condition for germany language
-            if ($N [$x + 1] == 0 & $N [$x + 2] == 1 & $L <= 2) {
-                $R [1] .= "e";
-            } else if ($N [$x + 1] == 0 & $N [$x + 2] == 1 & $L == 4) {
-                $R [1] .= "s";
+            if ($aNum[$x + 1] == 0 & $aNum[$x + 2] == 1 & $cycle <= 2) {
+                $aUnit[1] .= "e";
+            } else if ($aNum[$x + 1] == 0 & $aNum[$x + 2] == 1 & $cycle == 4) {
+                $aUnit[1] .= "s";
             }
             // End of special condition
 
-            $n_unit = $N [$x + 2] + ($N [$x + 1] * 10);
+            $nUnit = $aNum[$x + 2] + ($aNum[$x + 1] * 10);
             // keywords
-            if ($n_unit < 21) {
-                $str_unit = $R [$n_unit];
+            if ($nUnit < 21) {
+                $strUnit = $aUnit[$nUnit];
                 // tens
-            } else if ($N [$x + 2] == 0) {
-                $str_unit = $Z [$N [$x + 1]];
+            } else if ($aNum[$x + 2] == 0) {
+                $strUnit = $aTen[$aNum[$x + 1]];
             } else {
-                $str_unit = $R [$N [$x + 2]] . $M [0] . $Z [$N [$x + 1]];
+                $strUnit = $aUnit[$aNum[$x + 2]] . $aId[0] . $aTen[$aNum[$x + 1]];
             }
 
-            if ($L == 1 & substr($Forma, 1, 3) == "001") {
+            if ($cycle == 1 & substr($strForma, 1, 3) == "001") {
                 $id2 = $id1;
-            } else if ($L == 1 & substr($Forma, 4, 3) == "001") {
+            } else if ($cycle === 1 & substr($strForma, 4, 3) === "001") {
                 $id2 = $id1;
             }
 
-            if ($L <= 2 | $L == 4) {
+            if ($cycle <= 2 | $cycle === 4) {
                 $id2 = " " . $id2 . " ";
                 $id1 = " " . $id1 . " ";
             }
 
-            if ($N [$x] != 0) {
-                if ($N [$x + 1] + $N [$x + 2] != 0) {
-                    $Num .= $H [$N [$x]] . $str_unit . $id2;
+            if ($aNum[$x] != 0) {
+                if ($aNum[$x + 1] + $aNum[$x + 2] != 0) {
+                    $strNum .= $aHundred[$aNum[$x]] . $strUnit . $id2;
                 } else {
-                    $Num .= $H [$N [$x]] . $id2;
+                    $strNum .= $aHundred[$aNum[$x]] . $id2;
                 }
-            } else if ($N [$x + 1] + $N [$x + 2] != 0) {
-                $Num .= $str_unit . " " . $id2;
+            } else if ($aNum[$x + 1] + $aNum[$x + 2] != 0) {
+                $strNum .= $strUnit . " " . $id2;
             } else {
                 // nothing to do
             }
 
-            if ($L == 3) {
-                if (substr($Forma, 7, 3) == "001") {
-                    $Num = $id1;
+            if ($cycle === 3) {
+                if (substr($strForma, 7, 3) === "001") {
+                    $strNum = $id1;
                 }
             }
 
-             if ($L == 4) {
-				
-                 if (substr($Forma, 0, 12) == "000000000001") {
-                    $Num = $R [1] . " " . $id1;
-                } else if (substr($Forma, 0, 12) == "000000000000") {
-                    $Num = "";
+            if ($cycle === 4) {
+
+                if (substr($strForma, 0, 12) === "000000000001") {
+                    $strNum = $aUnit[1] . " " . $id1;
+                } else if (substr($strForma, 0, 12) === "000000000000") {
+                    $strNum = "";
                 } else {
-                    $Num = trim($Num);
-                    $Ln = strlen($Num);
-                    if (substr($Num, -1) == ",") {
-                        $Num = substr($Num, 0, $Ln - 1);
+                    $strNum = trim($strNum);
+                    $Ln = strlen($strNum);
+                    if (substr($strNum, -1) === ",") {
+                        $strNum = substr($strNum, 0, $Ln - 1);
                     }
                 }
 
                 // case one dollar
-				$Num = NumberingSystem::substituteIDs($Num, $Forma, $L, $id1,  $id2 ) ;
-				  
+                $strNum = NumberingSystem::substituteIDs($strNum, $strForma, $cycle, $id1, $id2);
+
                 // cond.4
-                if (substr($Forma, -3) != "000" & substr($Forma, 0, 12) != "000000000000") {
-                    $Num .= " " . $M [0] . " ";
+                if (substr($strForma, -3) != "000" & substr($strForma, 0, 12) != "000000000000") {
+                    $strNum .= " " . $aId[0] . " ";
                 }
             }
 
-           if ($L == 5) {
-				// one cent
-                $Num = NumberingSystem::substituteIDs($Num, $Forma, $L, $id1,  $id2 ) ;
+            if ($cycle === 5) {
+                // one cent
+                $strNum = NumberingSystem::substituteIDs($strNum, $strForma, $cycle, $id1, $id2);
             }
 
         }
 
-        // $Num = removeComma(Num) ; // no comma used in Germany
-        $Num = NumberingSystem::removeSpaces($Num);
-        $Num = NumberingSystem::removeAnd($Num, $M [0]);
+        // $strNum = removeComma(Num) ; // no comma used in Germany
+        $strNum = NumberingSystem::removeSpaces($strNum);
+        $strNum = NumberingSystem::removeAnd($strNum, $aId[0]);
 
-        if ($Forma == "000000000000.000") {
-            $Num = $R [0];
+        /*
+        if ($strForma == "000000000000.000") {
+            $strNum = $aUnit[0];
         }
+        */
 
-        return $Num;
+        return $strNum;
     }
 }
 
