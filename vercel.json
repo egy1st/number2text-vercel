@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/v1/index.php": {
+    "api/number2text/v1/index.php": {
       "runtime": "vercel-php@0.4.0"
     }
   }
