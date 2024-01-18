@@ -1,16 +1,11 @@
 <?php
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1);
-//ini_set('error_reporting', E_ALL);
-
-error_reporting(0);  //E_ALL
-ini_set("display_errors", 0); // 1
-ini_set('error_reporting', 0); // E_ALL
-
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+ini_set('error_reporting', E_ALL);
 
 //header('Content-Type: text/html; charset=UTF-8');
 require_once "Locality.php";
-require_once "Number2Words.php";
+require_once "Number2Text.php";
 
 if (isset($_GET['number']) && !empty($_GET['number'])) {
     $number = $_GET ['number'];
@@ -58,8 +53,8 @@ $units = "¢";
 }
 
 
-$oTextNum = new Number2Words();
-$Number2Words = $oTextNum->translateNumber($number, $language, $currency, $units, $locale, $output);
-echo trim($Number2Words);
+$oTextNum = new Number2Text();
+$Number2Text = $oTextNum->translateNumber($number, $language, $currency, $units, $locale, $output);
+echo trim($Number2Text);
 
 ?>

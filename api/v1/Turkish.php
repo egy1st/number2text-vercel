@@ -1,14 +1,8 @@
-﻿<?php
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1);
-//ini_set('error_reporting', E_ALL);
+<?php
+// error_reporting(E_ALL);
+// ini_set("display_errors", 1);
+// ini_set('error_reporting', E_ALL);
 
-error_reporting(0);  //E_ALL
-ini_set("display_errors", 0); // 1
-ini_set('error_reporting', 0); // E_ALL
-
-require_once "NumberingSystem.php";
-require_once "Number2Words.php";
 
 /**
  * @covers Turkish
@@ -16,110 +10,113 @@ require_once "Number2Words.php";
  */
 class Turkish
 {
-    public function TranslateNumber($str_Number, $aCur)
-    {
-        $Num = "";
 
-        NumberingSystem::getLanguage($R, $Z, $H, $M, $N, "Turkish");
+
+    /**
+     * This is the main function required to convert a number into words.
+     *
+     * @param string $strNumber number parameter
+     * @param string $aCur currency-array parameter
+     *
+     * @return string
+     */
+    public function translateNumber($strNumber, $aCur)
+    {
+        $strNum = "";
+
+        NumberingSystem::getLanguage($aUnit, $aTen, $aHundred, $aId, $aNum, "Turkish");
         for ($x = 7; $x <= 12; $x++) {
-            $M [$x] = $aCur [$x - 7];
+            $aId[$x] = $aCur [$x - 7];
         }
 
-        // ===================================================================================
+        // ====================================================================
         // each cycle represent a scale hunderds and tens, thousnads, millions and milliars
-        $L = 0;
-        for ($L = 1; $L <= 5; $L++) {
-            $id1 = $M [($L * 2) - 1];
-            $id2 = $M [$L * 2];
-            if ($L == 1) {
+        $strForma = Number2Text::prepareNumber($strNumber, $aNum);
+        $cycle = 0;
+        for ($cycle = 1; $cycle <= 5; $cycle++) {
+            $id1 = $aId[($cycle * 2) - 1];
+            $id2 = $aId[$cycle * 2];
+            if ($cycle === 1) {
                 $x = 1;
-                $n_sum = NumberingSystem::getSum($N, 1);
-            } else if ($L == 2) {
+                $nSum = NumberingSystem::getSum($aNum, 1);
+            } else if ($cycle === 2) {
                 $x = 4;
-                $n_sum = NumberingSystem::getSum($N, 2);
-            } else if ($L == 3) {
+                $nSum = NumberingSystem::getSum($aNum, 2);
+            } else if ($cycle === 3) {
                 $x = 7;
-                $n_sum = NumberingSystem::getSum($N, 3);
-            } else if ($L == 4) {
+                $nSum = NumberingSystem::getSum($aNum, 3);
+            } else if ($cycle === 4) {
                 $x = 10;
-            } else if ($L == 5) {
+            } else if ($cycle === 5) {
                 $x = 14;
             }
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             // ==============================================================================
-
-            // prepre numbers from 0 to 99
+            // Prepre numbers from 0 to 99
             // Numbers up to ninety-nine are built by spelling out the ten, then the digit (e.g.: otuz iki [32],
-
-            $Forma = Number2Words::prepareNumber($str_Number, $N);
-
-            $n_unit = ($N [$x + 1] * 10) + $N [$x + 2];
-            $n_all = $N [$x] + $n_unit;
+            $nUnit = ($aNum[$x + 1] * 10) + $aNum[$x + 2];
+            $nAll = $aNum[$x] + $nUnit;
 
             // keywords are only 10 not 20
-            if ($n_unit > 0 & $n_unit < 11) {
-                $str_unit = $R [$n_unit];
+            if ($nUnit > 0 & $nUnit < 11) {
+                $strUnit = $aUnit[$nUnit];
                 // tens
-            } else if ($N [$x + 2] == 0) {
-                $str_unit = $Z [$N [$x + 1]];
+            } else if ($aNum[$x + 2] == 0) {
+                $strUnit = $aTen[$aNum[$x + 1]];
                 // Please note that üç [3] loses its umlaut when composed within a number (e.g.: on uç [13]).
                 // thousnads multipier from 11 to 19 ara contcatentaed without space
                 // we test it is less than 20 as we are sure it is above 10
-            } else if ($N [$x + 2] == 3 & $N [$x + 1] > 0 & ($L == 3 & $n_unit < 20)) {
-                $str_unit = $Z [$N [$x + 1]] . "uç";
-            } else if ($N [$x + 2] == 3 & $N [$x + 1] > 0 & !($L == 3 & $n_unit < 20)) {
-                $str_unit = $Z [$N [$x + 1]] . " " . "uç";
+            } else if ($aNum[$x + 2] == 3 & $aNum[$x + 1] > 0 & ($cycle == 3 & $nUnit < 20)) {
+                $strUnit = $aTen[$aNum[$x + 1]] . "uç";
+            } else if ($aNum[$x + 2] == 3 & $aNum[$x + 1] > 0 & !($cycle == 3 & $nUnit < 20)) {
+                $strUnit = $aTen[$aNum[$x + 1]] . " " . "uç";
                 // thousnads multipier from 11 to 19 ara contcatentaed without space
                 // we test it is less than 20 as we are sure it is above 10
                 // others
-            } else if (($L == 3 & $n_unit < 20)) {
-                $str_unit = $Z [$N [$x + 1]] . $R [$N [$x + 2]];
+            } else if (($cycle == 3 & $nUnit < 20)) {
+                $strUnit = $aTen[$aNum[$x + 1]] . $aUnit[$aNum[$x + 2]];
             } else {
-                $str_unit = $Z [$N [$x + 1]] . " " . $R [$N [$x + 2]];
+                $strUnit = $aTen[$aNum[$x + 1]] . " " . $aUnit[$aNum[$x + 2]];
             }
 
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             // ==============================================================================
-            // prepare numbers from 100 to 999
+            // Prepare numbers from 100 to 999
             // Hundreds and thousands are built by telling the multiplier digit, then the hundred or thousand word
             // (e.g.: beş yüz [500], beş bin [5,000]).
 
-            if ($n_all != 0) {
+            if ($nAll != 0) {
                 // yüz not bir yüz
-                if (NumberingSystem::checkOneHundred($L, $Forma)) {
-                    $Num .= " " . $H [1] . " " . $id1 . " ";
-                } else if ($N [$x] == 0) {
-                    $Num .= $str_unit . " " . $id2 . " ";
+                if (NumberingSystem::checkOneHundred($cycle, $strForma)) {
+                    $strNum .= " " . $aHundred[1] . " " . $id1 . " ";
+                } else if ($aNum[$x] == 0) {
+                    $strNum .= $strUnit . " " . $id2 . " ";
                     // only units and tens
-                } else if ($n_unit == 0) {
-                    $Num .= $H [$N [$x]] . " " . $id2 . " ";
+                } else if ($nUnit == 0) {
+                    $strNum .= $aHundred[$aNum[$x]] . " " . $id2 . " ";
                     // only hundreds
                 } else {
-                    $Num .= $H [$N [$x]] . " " . $str_unit . " " . $id2 . " ";
+                    $strNum .= $aHundred[$aNum[$x]] . " " . $strUnit . " " . $id2 . " ";
                     // complete compund number
                 }
             }
 
-            // echo "L" . $L . $Num;
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-            if (NumberingSystem::NoCurrency($L, $Forma)) {
-                $Num = NumberingSystem::removeAnd($Num, $M [0]);
-                $Num .= " " . $id2;
+            // Echo "L" . $cycle . $Num;
+            if (NumberingSystem::NoCurrency($cycle, $strForma)) {
+                $strNum = NumberingSystem::removeAnd($strNum, $aId[0]);
+                $strNum .= " " . $id2;
             }
         }
 
         // Num = removeComma(Num) ' no comma is used in turkish
-        $Num = NumberingSystem::removeSpaces($Num);
-        $Num = NumberingSystem::removeAnd($Num, $M [0]);
+        $strNum = NumberingSystem::removeSpaces($strNum);
+        $strNum = NumberingSystem::removeAnd($strNum, $aId[0]);
 
-        if ($Forma == "000000000000.000") {
-            $Num = $R [0];
+        if ($strForma === "000000000000.000") {
+            $strNum = $aUnit[0];
         }
 
-        return $Num;
+        return $strNum;
     }
 }
 

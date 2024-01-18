@@ -1,15 +1,8 @@
 ﻿<?php
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1);
-//ini_set('error_reporting', E_ALL);
+// error_reporting(E_ALL);
+// ini_set("display_errors", 1);
+// ini_set('error_reporting', E_ALL);
 
-error_reporting(0);  //E_ALL
-ini_set("display_errors", 0); // 1
-ini_set('error_reporting', 0); // E_ALL
-
-
-require_once "NumberingSystem.php";
-require_once "Number2Words.php";
 
 /**
  * @covers Arabic
@@ -17,61 +10,71 @@ require_once "Number2Words.php";
  */
 class Arabic
 {
-    public function TranslateNumber($str_Number, $aCur)
+
+    /**
+     * This is the main function required to convert a number into words.
+     *
+     * @param string $strNumber number parameter
+     * @param string $aCur currency-array parameter
+     *
+     * @return string
+     */
+    public function translateNumber($strNumber, $aCur)
     {
-        $Num = "";
+        $strNum = "";
 
 
-        NumberingSystem::getLanguage($R, $Z, $H, $M, $N, "Arabic");
+        NumberingSystem::getLanguage($aUnit, $aTen, $aHundred, $aId, $aNum, "Arabic");
         for ($x = 7; $x <= 12; $x++) {
-            $M [$x] = $aCur [$x - 7];
+            $aId[$x] = $aCur [$x - 7];
         }
 
-        // ===================================================================================
+        // ====================================================================
         // each cycle represent a scale hunderds and tens, thousnads, millions and milliars
 
-        for ($L = 1; $L <= 5; $L++) {
+        $strForma = Number2Text::prepareNumber($strNumber, $aNum);
+        for ($cycle = 1; $cycle <= 5; $cycle++) {
             $G = 0;
 
-            if ($L == 1) {
+            if ($cycle === 1) {
                 $x = 1;
                 $id1 = " مليار ";
                 $id2 = " ملياران ";
                 $id3 = " مليارات ";
-            } else if ($L == 2) {
+            } else if ($cycle === 2) {
                 $x = 4;
                 $id1 = " مليون ";
                 $id2 = " مليونان ";
                 $id3 = " ملايين ";
-            } else if ($L == 3) {
+            } else if ($cycle === 3) {
                 $x = 7;
                 $id1 = " ألف ";
                 $id2 = " ألفان ";
                 $id3 = " آلاف ";
-            } else if ($L == 4) {
+            } else if ($cycle === 4) {
                 $x = 10;
                 $id1 = " جنيه ";
                 $id2 = " جنيهان ";
                 $id3 = " جنيهات ";
 
-                if (substr($Forma, 0, 12) == "001000000000") {
-                    $Num = " مليار ";
-                } else if (substr($Forma, 0, 12) == "002000000000") {
-                    $Num = " مليارى ";
-                } else if (substr($Forma, 0, 12) == "000001000000") {
-                    $Num = " مليون ";
-                } else if (substr($Forma, 0, 12) == "000002000000") {
-                    $Num = " مليونى ";
-                } else if (substr($Forma, 0, 12) == "000000001000") {
-                    $Num = " ألف ";
-                } else if (substr($Forma, 0, 12) == "000000002000") {
-                    $Num = " ألفى ";
+                if (substr($strForma, 0, 12) === "001000000000") {
+                    $strNum = " مليار ";
+                } else if (substr($strForma, 0, 12) === "002000000000") {
+                    $strNum = " مليارى ";
+                } else if (substr($strForma, 0, 12) === "000001000000") {
+                    $strNum = " مليون ";
+                } else if (substr($strForma, 0, 12) === "000002000000") {
+                    $strNum = " مليونى ";
+                } else if (substr($strForma, 0, 12) === "000000001000") {
+                    $strNum = " ألف ";
+                } else if (substr($strForma, 0, 12) === "000000002000") {
+                    $strNum = " ألفى ";
                 }
-				
-				 if ($N [$x] == 0 & $N [$x + 1] == 0 & $N [$x + 2] == 0) {
-                	$Num .=  $id1 ;
-			      }
-            } else if ($L == 5) {
+
+                if ($aNum[$x] == 0 & $aNum[$x + 1] == 0 & $aNum[$x + 2] == 0) {
+                    $strNum .= $id1;
+                }
+            } else if ($cycle == 5) {
                 $x = 14;
                 $id1 = " قرش ";
                 $id2 = " قرشان ";
@@ -79,98 +82,97 @@ class Arabic
             }
 
 
-            if (isset($N [$x + 1])) {
-                if ($N [$x + 1] == 0 & $N [$x + 2] == 0) {
-                    $H [2] = "مائتى ";
+            if (isset($aNum[$x + 1])) {
+                if ($aNum[$x + 1] == 0 & $aNum[$x + 2] == 0) {
+                    $aHundred[2] = "مائتى ";
                 } else {
-                    $H [2] = "مائتين ";
+                    $aHundred[2] = "مائتين ";
                 }
             }
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-            // ==============================================================================
-            // prepare numbers from 100 to 999
-
-            $Forma = Number2Words::prepareNumber($str_Number, $N);
-
-            if ($N [$x] == 0 & $N [$x + 1] == 0 & $N [$x + 2] == 0) {
+            // ================================================================
+            // Prepare numbers from 100 to 999
+            
+            if ($aNum[$x] == 0 & $aNum[$x + 1] == 0 & $aNum[$x + 2] == 0) {
                 $G = 1;
-            } else if ($N [$x] == 0 & $N [$x + 1] == 0 & $N [$x + 2] == 1) {
-                $Num = $Num . " و " . $id1;
+            } else if ($aNum[$x] == 0 & $aNum[$x + 1] == 0 & $aNum[$x + 2] == 1) {
+                $strNum = $strNum . " و " . $id1;
                 $G = 1;
-            } else if ($N [$x] == 0 & $N [$x + 1] == 0 & $N [$x + 2] == 2) {
-                $Num = $Num . " و " . $id2;
+            } else if ($aNum[$x] == 0 & $aNum[$x + 1] == 0 & $aNum[$x + 2] == 2) {
+                $strNum = $strNum . " و " . $id2;
                 $G = 1;
             }
 
-            //print_r($N) ;
-            if ($N [$x] > 0) {
-                $Num = $Num . " و " . $H [$N [$x]];
+            // Print_r($N) ;
+            if ($aNum[$x] > 0) {
+                $strNum = $strNum . " و " . $aHundred[$aNum[$x]];
             }
 
-            if ($N [$x + 1] == 1 & $N [$x + 2] == 0) {
-                $Num = $Num . " و " . $Z [1] . $id3;
+            if ($aNum[$x + 1] == 1 & $aNum[$x + 2] == 0) {
+                $strNum = $strNum . " و " . $aTen[1] . $id3;
                 $G = 4;
-				//echo "we are here 1" ;
-            } else if ($N [$x + 2] == 1 & $N [$x + 1] == 1) {
-                $Num = $Num . " و " . $R [11] . $Z [1] . $id1;
+                //echo "we are here 1" ;
+            } else if ($aNum[$x + 2] == 1 & $aNum[$x + 1] == 1) {
+                $strNum = $strNum . " و " . $aUnit[11] . $aTen[1] . $id1;
                 $G = 4;
-				//echo "we are here 2" ;
-            } else if ($N [$x + 2] == 2 & $N [$x + 1] == 1) {
-                $Num = $Num . " و " . $R [12] . $Z [1] . $id1;
+                //echo "we are here 2" ;
+            } else if ($aNum[$x + 2] == 2 & $aNum[$x + 1] == 1) {
+                $strNum = $strNum . " و " . $aUnit[12] . $aTen[1] . $id1;
                 $G = 4;
-				//echo "we are here 3" ;
+                //echo "we are here 3" ;
             }
 
-            if ($N [$x] == 0 & $N [$x + 1] == 0 & $N [$x + 2] > 2) {
-                $Num = $Num . " و " . $R [$N [$x + 2]] . $id3;
+            if ($aNum[$x] == 0 & $aNum[$x + 1] == 0 & $aNum[$x + 2] > 2) {
+                $strNum = $strNum . " و " . $aUnit[$aNum[$x + 2]] . $id3;
                 $G = 1;
-				//echo "we are here 4" ;
+                // Echo "we are here 4" ;
             }
 
-            if ($N [$x + 2] > 0 & $G != 4 & $G != 1) {
-                $Num = $Num . " و " . $R [$N [$x + 2]];
+            if ($aNum[$x + 2] > 0 & $G != 4 & $G != 1) {
+                $strNum = $strNum . " و " . $aUnit[$aNum[$x + 2]];
                 $G = 2;
-				//echo "we are here 5" ;
+                //echo "we are here 5" ;
             }
 
-            if ($N [$x + 1] > 1) {
-                $Num = $Num . " و " . $Z [$N [$x + 1]];
+            if ($aNum[$x + 1] > 1) {
+                $strNum = $strNum . " و " . $aTen[$aNum[$x + 1]];
                 $G = 2;
-				//echo "we are here 6" ;
+                //echo "we are here 6" ;
             }
 
-            if ($N [$x + 1] == 1 & $G != 4) {
-                $Num = $Num . $Z [$N [$x + 1]];
+            if ($aNum[$x + 1] == 1 & $G != 4) {
+                $strNum = $strNum . $aTen[$aNum[$x + 1]];
                 $G = 2;
-				//echo "we are here 7" ;
+                // Echo "we are here 7" ;
             }
 
             if ($G != 1 & $G != 4) {
-                $Num = $Num . $id1;
-				//echo "we are here 8" ;
+                $strNum = $strNum . $id1;
+                //echo "we are here 8" ;
             }
         }
 
-        $NewNum = $Num;
-        $Ln = strlen($NewNum);
+        $newNum = $strNum;
+        $Ln = strlen($newNum);
 
-        if (substr($NewNum, 0, strlen(" و ")) == " و ") {
-            $NewNum = substr($NewNum, -($Ln - strlen(" و ")));
+        if (substr($newNum, 0, strlen(" و ")) == " و ") {
+            $newNum = substr($newNum, -($Ln - strlen(" و ")));
         }
 
-        if ($Forma == "000000000000.000") {
-            $NewNum = "";
+        /*
+        if ($strForma == "000000000000.000") {
+            $newNum = "";
         }
+        */
 
-        $NewNum = str_replace("جنيه", $M [7], $NewNum);
-        $NewNum = str_replace("جنيهات", $M [8], $NewNum);
-        $NewNum = str_replace("قرش", $M [9], $NewNum);
-        $NewNum = str_replace("قروش", $M [10], $NewNum);
-        $NewNum = str_replace("جنيهان", $M [11], $NewNum);
-        $NewNum = str_replace("قرشان", $M [12], $NewNum);
+        $newNum = str_replace("جنيه", $aId[7], $newNum);
+        $newNum = str_replace("جنيهات", $aId[8], $newNum);
+        $newNum = str_replace("قرش", $aId[9], $newNum);
+        $newNum = str_replace("قروش", $aId[10], $newNum);
+        $newNum = str_replace("جنيهان", $aId[11], $newNum);
+        $newNum = str_replace("قرشان", $aId[12], $newNum);
 
-        return $NewNum;
+        return $newNum;
     }
 }
 
