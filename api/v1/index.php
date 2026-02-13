@@ -55,6 +55,6 @@ $units = "¢";
 
 $oTextNum = new Number2Text();
 $Number2Text = $oTextNum->translateNumber($number, $language, $currency, $units, $locale, $output);
-echo trim($Number2Text);
-
+//echo trim($Number2Text);
+echo "This version of the Number2Text script is no longer supported and will be terminated by April 5, 2025. For continued functionality, you should migrate to the current version (v2), available at: https://rapidapi.com/egy1st/api/number2words4";
 ?>
